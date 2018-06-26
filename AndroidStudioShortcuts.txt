@@ -1,0 +1,25 @@
+Alt+F7 		- Find usage for variables or methods
+Ctrl-B 		- Navigate to the declaration of the class
+Ctrl-F12 	- Navigate in the currently edited file
+Shft-F6 	- Rename a variable across all code
+Ctrl-I 		- Implement methods of an interface
+Ctrl-O 		- Override the method of a base class
+Alt-Insert 	- Generate getter/setter methods, constructor etc.
+Alt-F1 		- Quickly select the currently edited element(class file, method or field)
+Shft-Esc	- Moves focus to the editor and also hides the current tool window
+F12		- Moves the focus from the editor to the last focused tool window
+Ctrl-Alt-T	- Surround selected code with try catch, if-else etc
+Ctrl-Slash	- Comments the selected code
+Ctrl-Shft-Slash	- Uncomments the selected code
+Ctrl-P		- If the caret is between paranthesis of method, it brings a list of valid parameters
+Ctrl-Shft-Back	- Brings you back to the place where you last made changes
+Ctrl-E		- Brings up the recently visited files
+Ctrl-Space	- Used for code completion
+Alt-F8		- Used to evaluate any expression while debugging the program. Alternativery click alt and click exp
+Ctrl-Alt-Shft-N	- To open any method or field in editor quickly
+Alt-Shft-C	- Quickly review your recent changes to the project
+Ctrl-Shft-Enter - Complete the current statement such as if-else, do-while etc
+Ctrl-Shft-A	- Quickly find a menu command or toolbar action
+Ctrl-Shft-F7	- View all exit points in the method by placing caret on one of them and pressing this combination
+		  Similarly for seeing all statements throwing type of exception, put caret on exception and use comb
+Ctrl-Shift-N	- Quick search for files
