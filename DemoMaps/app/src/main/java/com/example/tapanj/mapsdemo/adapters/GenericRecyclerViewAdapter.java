@@ -1,21 +1,33 @@
-package com.example.tapanj.mapsdemo;
+package com.example.tapanj.mapsdemo.adapters;
 
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.TextView;
+import com.example.tapanj.mapsdemo.R;
 
 public class GenericRecyclerViewAdapter<T> extends RecyclerView.Adapter<GenericRecyclerViewAdapter.ViewHolder> {
+    //region All private variables
     private T[] mDataSet;
 
-    public interface OnRecyclerItemClickListener<U> {
-        public void onItemClick(U itemData);
-    }
     private final OnRecyclerItemClickListener onItemClickListener;
+    //endregion
 
+    //region Constructors
+    public GenericRecyclerViewAdapter(T[] dataSet, OnRecyclerItemClickListener onItemClickListener){
+        this.mDataSet = dataSet;
+        this.onItemClickListener = onItemClickListener;
+    }
+    //endregion
+
+    //region All Interface definitions
+    public interface OnRecyclerItemClickListener<U> {
+        void onItemClick(U itemData);
+    }
+    //endregion
+
+    //region All Static classes
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you can provide access to all the views for a data item in a view holder.
@@ -37,12 +49,9 @@ public class GenericRecyclerViewAdapter<T> extends RecyclerView.Adapter<GenericR
             });
         }
     }
+    //endregion
 
-    public GenericRecyclerViewAdapter(T[] dataSet, OnRecyclerItemClickListener onItemClickListener){
-        this.mDataSet = dataSet;
-        this.onItemClickListener = onItemClickListener;
-    }
-
+    //region Overridden Recyclerview Adapter methods
     // Create new views (invoked by the layout manager)
     @Override
     public GenericRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
@@ -65,4 +74,5 @@ public class GenericRecyclerViewAdapter<T> extends RecyclerView.Adapter<GenericR
     public int getItemCount() {
         return mDataSet.length;
     }
+    //endregion
 }

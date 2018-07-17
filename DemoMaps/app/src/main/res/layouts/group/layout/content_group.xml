@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".activities.group.GroupActivity"
+    tools:showIn="@layout/activity_group">
+
+    <TextView
+            android:text="GroupName"
+            android:layout_width="0dp"
+            android:layout_height="20dp" android:id="@+id/textView_groupName"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp"
+    />
+    <TextView
+            android:text="Members"
+            android:layout_width="0dp"
+            android:layout_height="30dp" android:id="@+id/textView_membersTitle"
+            android:layout_marginTop="8dp" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/textView_groupName" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="8dp" android:layout_marginRight="8dp"/>
+    <android.support.v7.widget.RecyclerView
+            android:layout_height="80dp" app:layout_constraintTop_toBottomOf="@+id/textView_membersTitle"
+            android:layout_marginTop="8dp" app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp" android:id="@+id/recycler_members" android:layout_width="0dp">
+    </android.support.v7.widget.RecyclerView>
+    <TextView
+            android:text="Hangouts"
+            android:layout_width="0dp"
+            android:layout_height="30dp" android:id="@+id/textView_hangouts"
+            app:layout_constraintTop_toBottomOf="@+id/recycler_members" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp" android:layout_marginTop="16dp"/>
+    <android.support.v7.widget.RecyclerView
+            android:layout_width="0dp"
+            android:layout_height="80dp" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/textView_hangouts" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp" android:id="@+id/recycler_hangouts"/>
+    <Button
+            android:text="START"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:layout_editor_absoluteX="0dp" android:id="@+id/btn_locationUpdates" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/recycler_hangouts"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:layout_editor_absoluteX="8dp" android:id="@+id/btn_get_current_location"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/btn_locationUpdates" android:text="@string/get_current_location"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:layout_editor_absoluteX="8dp" android:id="@+id/textView_CurrentLocation"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toBottomOf="@+id/btn_get_current_location"/>
+    <CheckBox
+            android:text="Fetch Address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" tools:layout_editor_absoluteY="360dp"
+            android:id="@+id/chk_fetchAddress" app:layout_constraintStart_toEndOf="@+id/btn_get_current_location"
+            android:layout_marginLeft="28dp" android:layout_marginStart="28dp"/>
+</android.support.constraint.ConstraintLayout>
