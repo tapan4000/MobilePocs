@@ -1,10 +1,8 @@
 package com.example.tapanj.mapsdemo.activities.group;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
@@ -16,7 +14,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -26,8 +23,9 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import com.example.tapanj.mapsdemo.R;
+import com.example.tapanj.mapsdemo.activities.LocationActivityBase;
+import com.example.tapanj.mapsdemo.activities.map.MapsActivity;
 import com.example.tapanj.mapsdemo.adapters.GenericRecyclerViewAdapter;
-import com.example.tapanj.mapsdemo.adapters.MyGeoCoder;
 import com.example.tapanj.mapsdemo.common.Constants;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
 import com.example.tapanj.mapsdemo.dagger.CustomApplication;
@@ -35,13 +33,9 @@ import com.example.tapanj.mapsdemo.intentservice.FetchAddressIntentService;
 import com.example.tapanj.mapsdemo.intentservice.GeofenceTransitionIntentService;
 import com.example.tapanj.mapsdemo.interfaces.ILogger;
 import com.example.tapanj.mapsdemo.models.*;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.*;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -52,9 +46,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-import static com.google.android.gms.location.LocationServices.getFusedLocationProviderClient;
-
-public class GroupActivity extends AppCompatActivity {
+public class GroupActivity extends LocationActivityBase {
     // region All private variables
     private Group mGroup;
     private RecyclerView.LayoutManager membersRecyclerViewLayoutManager;
@@ -63,8 +55,6 @@ public class GroupActivity extends AppCompatActivity {
     private WorkflowContext activityLifecycleWorkflowContext;
     private PendingIntent geofencePendingIntent;
 
-    private final int REQUEST_GPS_SETTINGS = 1;
-    private final int REQUEST_ACCESS_FINE_LOCATION = 2;
     private final String LOG_FILE_NAME = "log.txt";
     private final String Start_String = "START";
     private final String Stop_String = "STOP";
@@ -86,6 +76,7 @@ public class GroupActivity extends AppCompatActivity {
         this.activityLifecycleWorkflowContext = new WorkflowContext(GroupActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
         setContentView(R.layout.activity_group);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -122,7 +113,9 @@ public class GroupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 WorkflowContext getCurrentLocationButtonClickWorkflowContext =
                         new WorkflowContext(Utility.ExtractResourceName(btnGetCurrentLocation.toString()), WorkflowSourceType.Button_Click);
-                populateCurrentLocation(getCurrentLocationButtonClickWorkflowContext);
+
+                // After the check location permission, the location should be fetched in the handler for location permission check complete.
+                checkLocationPermission(getCurrentLocationButtonClickWorkflowContext);
             }
         });
 
@@ -135,7 +128,7 @@ public class GroupActivity extends AppCompatActivity {
         readGroupFromIntent();
         populateDisplay();
         initializeLocationUpdateCallback();
-        populateCurrentLocation(this.activityLifecycleWorkflowContext);
+        checkLocationPermission(this.activityLifecycleWorkflowContext);
     }
 
     @Override
@@ -163,65 +156,9 @@ public class GroupActivity extends AppCompatActivity {
         return false;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
-        switch (requestCode) {
-            case REQUEST_GPS_SETTINGS:
-                switch (resultCode) {
-                    case Activity.RESULT_OK:
-                        // All required changes were successfully made.
-                        fetchLocationPostValidations();
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        // The user was asked to change settings but chose not to.
-                        break;
-                    default:
-                        break;
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case REQUEST_ACCESS_FINE_LOCATION:
-                // If the request is cancelled, the results array is empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission has been granted. Perform the location related task.
-                    askForGps();
-                } else {
-                    // Permission has been denied.
-                }
-                break;
-        }
-    }
-
     //endregion
 
     // region All private methods
-    private void populateCurrentLocation(WorkflowContext workflowContext) {
-        // Check if the location permissions are available
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            populateMessageOnCurrentLocationTextView("Location permission not available");
-
-            // Permission is not granted. Ask the user to grant the permission.
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                populateMessageOnCurrentLocationTextView("Should show permission rationale. Requesting permission");
-                // Show an explanation to the user asynchronously on why the permission is needed. Do not block this thread waiting for the user's response.
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_ACCESS_FINE_LOCATION);
-            } else {
-                populateMessageOnCurrentLocationTextView("Should not show permission rationale. Requesting permission");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_ACCESS_FINE_LOCATION);
-            }
-        } else {
-            populateMessageOnCurrentLocationTextView("Location permission available.");
-            // If the location permissions are available, then check if GPS is available.
-            askForGps();
-        }
-    }
 
     private void fetchLocationPostValidations() {
         populateMessageOnCurrentLocationTextView("Entered fetch location post validations.");
@@ -229,7 +166,6 @@ public class GroupActivity extends AppCompatActivity {
         {
             return;
         }
-
 
         mfusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         mfusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -253,10 +189,23 @@ public class GroupActivity extends AppCompatActivity {
                         populateMessageOnCurrentLocationTextView("Service started.");
                     }
                     else{
-                        initializeGeofence(location);
-                        MyGeoCoder.getLocationAddress(location.getLatitude(), location.getLongitude(), 1);
-                        String locationString = getLocationString(location);
-                        populateMessageOnCurrentLocationTextView(locationString);
+                        //long startTime = System.currentTimeMillis();
+                        //double distanceInMetres = getDistanceInMetres(42.311129, -83.221113, 42.351129, -83.211113);
+                        //long endTime = System.currentTimeMillis();
+                        //long timeElapsedMillin = endTime - startTime;
+                        //initializeGeofence(location);
+                        //MyGeoCoder.getLocationAddress(location.getLatitude(), location.getLongitude(), 1);
+                        CheckBox chkShowMap = (CheckBox) findViewById(R.id.chk_showMap);
+                        if(chkShowMap.isChecked()){
+                            Intent mapIntent = new Intent(GroupActivity.this, MapsActivity.class);
+                            mapIntent.putExtra(MapsActivity.CURRENTLOCATION, location);
+                            startActivity(mapIntent);
+                        }
+                        else{
+                            String locationString = getLocationString(location);
+                            populateMessageOnCurrentLocationTextView(locationString);
+                        }
+
                     }
                 } else {
                     // The location may be null 1) if the location has been turned off in the device. 2) If the location was previously retreived because
@@ -394,63 +343,7 @@ public class GroupActivity extends AppCompatActivity {
         return true;
     }
 
-    private void askForGps(){
-        LocationRequest highAccuracyLocationRequest = new LocationRequest();
-        highAccuracyLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        highAccuracyLocationRequest.setInterval(10000);
-        highAccuracyLocationRequest.setFastestInterval(5000);
 
-//        LocationRequest balancedPowerAccuracyLocationRequest = new LocationRequest();
-//        balancedPowerAccuracyLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-//        balancedPowerAccuracyLocationRequest.setInterval(10000);
-//        balancedPowerAccuracyLocationRequest.setFastestInterval(5000);
-        LocationSettingsRequest.Builder locationSettingsRequestBuilder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(highAccuracyLocationRequest);
-//                .addLocationRequest(balancedPowerAccuracyLocationRequest);
-
-        LocationServices.getSettingsClient(this)
-                .checkLocationSettings(locationSettingsRequestBuilder.build())
-                .addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-                    @Override
-                    public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
-                        try {
-                            populateMessageOnCurrentLocationTextView("Location service response received.");
-                            LocationSettingsResponse response = task.getResult(ApiException.class);
-
-                            // If the GPS is available, fetch the current location.
-                            fetchLocationPostValidations();
-                        } catch (ApiException ex) {
-                            populateMessageOnCurrentLocationTextView("Exception received: " + ex.getMessage());
-                            switch (ex.getStatusCode()){
-                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                    // Location settings are not satisfied, but could be fixed by showing the user a dialog
-                                    try{
-                                        populateMessageOnCurrentLocationTextView("Resolution required Exception received. Sending request GPS enable request.");
-
-                                        // Cast the resolvable exception
-                                        ResolvableApiException resolvable = (ResolvableApiException) ex;
-
-                                        // Show the dialog by calling startResolutionForResult() and check the result in onActivityResult.
-                                        resolvable.startResolutionForResult(GroupActivity.this, REQUEST_GPS_SETTINGS);
-                                    }
-                                    catch(IntentSender.SendIntentException exception){
-                                        populateMessageOnCurrentLocationTextView("Send Intent exception received." + ex.getMessage());
-                                    }
-                                    catch (ClassCastException exception){
-                                        populateMessageOnCurrentLocationTextView("Class cast exception received." + ex.getMessage());
-                                    }
-
-                                    break;
-
-                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                    // Location settings are not satisfied. However, we have no way to fix the settings so we won't show the dialog
-                                    populateMessageOnCurrentLocationTextView("GPS Settings change is unavailable. No way to fix settings");
-                                    break;
-                            }
-                        }
-                    }
-                });
-    }
 
     private void populateDisplay() {
         if(null == this.mGroup){
@@ -507,6 +400,24 @@ public class GroupActivity extends AppCompatActivity {
 
     }
 
+    private double getDistanceInMetres(double lat1, double lon1, double lat2, double lon2){
+        int earthRadiusInKm = 6371;
+        double latitudeDifferenceInRadians = this.convertDegreeToRadians(lat2 - lat1);
+        double longitudeDifferenceInRadians = this.convertDegreeToRadians(lon2 - lon1);
+        double a = Math.pow(Math.sin(latitudeDifferenceInRadians / 2), 2)
+                + Math.cos(this.convertDegreeToRadians(lat1))
+                    *Math.cos(this.convertDegreeToRadians(lat2))
+                    *Math.pow(Math.sin(longitudeDifferenceInRadians / 2), 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double distanceInMetres = earthRadiusInKm * c * 1000;
+        return distanceInMetres;
+    }
+
+    private double convertDegreeToRadians(double degree){
+        return degree * (Math.PI / 180);
+    }
+
     private void initializeGeofence(Location location){
         String geofenceKey = "mytestgeofence";
         double latitude = 34.1786998;
@@ -558,6 +469,21 @@ public class GroupActivity extends AppCompatActivity {
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling addGeofences() and removeGeofences()
         this.geofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return this.geofencePendingIntent;
+    }
+
+    @Override
+    protected void onCompleteLocationCheck(boolean isConnectSuccessful) {
+        if(isConnectSuccessful){
+            fetchLocationPostValidations();
+        }
+        else{
+
+        }
+    }
+
+    @Override
+    protected void onLocationCheckLogEventReceived(String logEvent) {
+        populateMessageOnCurrentLocationTextView(logEvent);
     }
     //endregion
 
