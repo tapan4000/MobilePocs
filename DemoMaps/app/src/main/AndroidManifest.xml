@@ -51,6 +51,10 @@
             android:name=".activities.group.GroupActivity"
             android:label="@string/title_activity_group"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+                android:name=".activities.groupmember.GroupMemberActivity"
+                android:label="@string/title_activity_member"
+                android:theme="@style/AppTheme.NoActionBar"></activity>
         <service android:name=".intentservice.FetchAddressIntentService" android:exported="false" />
         <service android:name=".intentservice.GeofenceTransitionIntentService" android:exported="true" />
     </application>

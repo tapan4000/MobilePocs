@@ -25,6 +25,7 @@ import android.widget.TextView;
 import com.example.tapanj.mapsdemo.R;
 import com.example.tapanj.mapsdemo.activities.LocationActivityBase;
 import com.example.tapanj.mapsdemo.activities.map.MapsActivity;
+import com.example.tapanj.mapsdemo.activities.groupmember.GroupMemberActivity;
 import com.example.tapanj.mapsdemo.adapters.GenericRecyclerViewAdapter;
 import com.example.tapanj.mapsdemo.common.Constants;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
@@ -42,8 +43,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
 
 public class GroupActivity extends LocationActivityBase {
@@ -52,7 +51,7 @@ public class GroupActivity extends LocationActivityBase {
     private RecyclerView.LayoutManager membersRecyclerViewLayoutManager;
     private RecyclerView.LayoutManager hangoutsRecyclerViewLayoutManager;
     private LocationAddressResultReceiver locationAddressResultReceiver;
-    private WorkflowContext activityLifecycleWorkflowContext;
+
     private PendingIntent geofencePendingIntent;
 
     private final String LOG_FILE_NAME = "log.txt";
@@ -65,7 +64,7 @@ public class GroupActivity extends LocationActivityBase {
 
     // region All public static variables
     public static final String GROUPDETAIL = "com.example.tapanj.mapsdemo.GROUPDETAIL";
-    private LocationCallback mLocationCallback;
+
     private FusedLocationProviderClient mfusedLocationProviderClient;
     //endregion
 
@@ -73,7 +72,7 @@ public class GroupActivity extends LocationActivityBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.activityLifecycleWorkflowContext = new WorkflowContext(GroupActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
+
         setContentView(R.layout.activity_group);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
@@ -115,7 +114,7 @@ public class GroupActivity extends LocationActivityBase {
                         new WorkflowContext(Utility.ExtractResourceName(btnGetCurrentLocation.toString()), WorkflowSourceType.Button_Click);
 
                 // After the check location permission, the location should be fetched in the handler for location permission check complete.
-                checkLocationPermission(getCurrentLocationButtonClickWorkflowContext);
+                getCurrentLocation(getCurrentLocationButtonClickWorkflowContext);
             }
         });
 
@@ -127,8 +126,12 @@ public class GroupActivity extends LocationActivityBase {
         locationAddressResultReceiver = new LocationAddressResultReceiver(new Handler());
         readGroupFromIntent();
         populateDisplay();
-        initializeLocationUpdateCallback();
-        checkLocationPermission(this.activityLifecycleWorkflowContext);
+        getCurrentLocation(this.activityLifecycleWorkflowContext);
+    }
+
+    @Override
+    protected void initializeActivityLifecycleWorkflowContext() {
+        this.activityLifecycleWorkflowContext = new WorkflowContext(GroupActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
     }
 
     @Override
@@ -228,64 +231,6 @@ public class GroupActivity extends LocationActivityBase {
         logger.LogInformation(message, "");
     }
 
-    private void initializeLocationUpdateCallback() {
-        mLocationCallback = new LocationCallback(){
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                String callbackWorkflowId = Utility.GetUniqueWorkflowId();
-                populateMessageOnCurrentLocationTextView("Location callback invoked.");
-                //logger.LogVerbose("Location callback invoked.", callbackWorkflowId);
-                if (null == locationResult) {
-                    populateMessageOnCurrentLocationTextView("Location result is null.");
-                    //logger.LogError("Location result is null", callbackWorkflowId);
-                    return;
-                }
-
-                for(Location location: locationResult.getLocations()){
-                    // Store the location information in local file.
-                    String locationDetail = getLocationString(location);
-                    populateMessageOnCurrentLocationTextView(locationDetail);
-                    saveToFile(locationDetail);
-                }
-            }
-        };
-    }
-
-    private String getLocationString(Location location) {
-        String provider = location.getProvider();
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
-        long time = location.getTime();
-
-        float accuracy = -1;
-        if(location.hasAccuracy()){
-            accuracy = location.getAccuracy();
-        }
-
-        double altitude = -1;
-        if(location.hasAltitude()){
-            altitude = location.getAltitude();
-        }
-
-        float speed = -1;
-        if(location.hasSpeed()){
-            speed = location.getSpeed();
-        }
-
-        float bearing = -1;
-        if(location.hasBearing())
-        {
-            bearing = location.getBearing();
-        }
-
-        String strDate = getCurrentDateTime();
-
-        String locationDetail = strDate + " - Provider:" + provider + ", Latitude:" + latitude + ", Longitude:" + longitude + ", Time:" + time + ", Accuracy:" + accuracy
-                + ", Altitude:" + altitude + ", Speed:" + speed + ", Bearing:" + bearing;
-
-        return locationDetail;
-    }
-
     private void saveToFile(String message) {
         File directory = getFilesDir();
         String path = directory.getAbsolutePath();
@@ -304,31 +249,6 @@ public class GroupActivity extends LocationActivityBase {
         }
     }
 
-    private String getCurrentDateTime() {
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return dateFormat.format(calendar.getTime());
-    }
-
-    private void startLocationUpdates(WorkflowContext workflowContext) {
-        if(null != mfusedLocationProviderClient){
-            if (!checkAccessFineLocationPermission())
-                return;
-
-            LocationRequest highAccuracyLocationRequest = new LocationRequest();
-            highAccuracyLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            highAccuracyLocationRequest.setInterval(10000);
-            highAccuracyLocationRequest.setFastestInterval(5000);
-            mfusedLocationProviderClient.requestLocationUpdates(highAccuracyLocationRequest, mLocationCallback, null);
-        }
-    }
-
-    private void stopLocationUpdates(WorkflowContext workflowContext) {
-        if(null != mfusedLocationProviderClient){
-            mfusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
-        }
-    }
-
     private boolean checkAccessFineLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -343,7 +263,14 @@ public class GroupActivity extends LocationActivityBase {
         return true;
     }
 
+    @Override
+    protected void onLocationUpdateReceived(Location location) {
+        if(null != location){
+            String locationDetail = getLocationString(location);
+            saveToFile(locationDetail);
+        }
 
+    }
 
     private void populateDisplay() {
         if(null == this.mGroup){
@@ -368,6 +295,9 @@ public class GroupActivity extends LocationActivityBase {
             GenericRecyclerViewAdapter membersRecyclerViewAdapter = new GenericRecyclerViewAdapter(groupMembers.toArray(), new GenericRecyclerViewAdapter.OnRecyclerItemClickListener<GroupMember>() {
                 @Override
                 public void onItemClick(GroupMember itemData) {
+                    Intent memberClickIntent = new Intent(GroupActivity.this, GroupMemberActivity.class);
+                    memberClickIntent.putExtra(GroupMemberActivity.MEMBERDETAIL, itemData);
+                    startActivity(memberClickIntent);
                 }
             });
             rvMembers.setAdapter(membersRecyclerViewAdapter);
@@ -472,7 +402,7 @@ public class GroupActivity extends LocationActivityBase {
     }
 
     @Override
-    protected void onCompleteLocationCheck(boolean isConnectSuccessful) {
+    protected void onLocationPermissionCheckComplete(boolean isConnectSuccessful) {
         if(isConnectSuccessful){
             fetchLocationPostValidations();
         }
@@ -484,6 +414,12 @@ public class GroupActivity extends LocationActivityBase {
     @Override
     protected void onLocationCheckLogEventReceived(String logEvent) {
         populateMessageOnCurrentLocationTextView(logEvent);
+    }
+
+    @Override
+    protected void onCurrentLocationRequestComplete(Location location) {
+        // This has not been implemented and onLocationPermissionCheckComplete has been over-riddent in this activity.
+        // So this method is never called.
     }
     //endregion
 

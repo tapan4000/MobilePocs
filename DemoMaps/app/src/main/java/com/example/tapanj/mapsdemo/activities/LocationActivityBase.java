@@ -5,22 +5,41 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import com.example.tapanj.mapsdemo.common.Utility.Utility;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.*;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public abstract class LocationActivityBase extends AppCompatActivity {
     private final int REQUEST_GPS_SETTINGS = 1;
     private final int REQUEST_ACCESS_FINE_LOCATION = 2;
+    private LocationCallback mLocationCallback;
+    private FusedLocationProviderClient mfusedLocationProviderClient;
 
     protected final int DEFAULT_ZOOM = 15;
+    protected WorkflowContext activityLifecycleWorkflowContext;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initializeLocationUpdateCallback();
+    }
+
+    protected abstract void initializeActivityLifecycleWorkflowContext();
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -30,11 +49,11 @@ public abstract class LocationActivityBase extends AppCompatActivity {
                 switch (resultCode) {
                     case Activity.RESULT_OK:
                         // All required changes were successfully made.
-                        onCompleteLocationCheck(true);
+                        onLocationPermissionCheckComplete(true);
                         break;
                     case Activity.RESULT_CANCELED:
                         // The user was asked to change settings but chose not to.
-                        onCompleteLocationCheck(false);
+                        onLocationPermissionCheckComplete(false);
                         break;
                     default:
                         break;
@@ -43,7 +62,7 @@ public abstract class LocationActivityBase extends AppCompatActivity {
         }
     }
 
-    protected void checkLocationPermission(WorkflowContext workflowContext) {
+    protected void getCurrentLocation(WorkflowContext workflowContext) {
         // Check if the location permissions are available
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             onLocationCheckLogEventReceived("Location permission not available");
@@ -80,9 +99,145 @@ public abstract class LocationActivityBase extends AppCompatActivity {
         }
     }
 
-    protected abstract void onCompleteLocationCheck(boolean isConnectSuccessful);
+    protected void onLocationPermissionCheckComplete(boolean isConnectSuccessful){
+        if(isConnectSuccessful){
+            fetchCurrentLocationPostPermissionChecks();
+        }
+        else{
+
+        }
+    }
+
+    private boolean checkAccessFineLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return false;
+        }
+        return true;
+    }
+
+    protected abstract void onLocationUpdateReceived(Location location);
+
+    private void initializeLocationUpdateCallback() {
+        mLocationCallback = new LocationCallback(){
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                onLocationCheckLogEventReceived("Location callback invoked.");
+                //logger.LogVerbose("Location callback invoked.", callbackWorkflowId);
+                if (null == locationResult) {
+                    onLocationCheckLogEventReceived("Location result is null.");
+                    onLocationUpdateReceived(null);
+                    //logger.LogError("Location result is null", callbackWorkflowId);
+                    return;
+                }
+
+                for(Location location: locationResult.getLocations()){
+                    // Store the location information in local file.
+                    onLocationUpdateReceived(location);
+                }
+            }
+        };
+    }
+
+    protected void startLocationUpdates(WorkflowContext workflowContext) {
+        if(null != mfusedLocationProviderClient){
+            if (!checkAccessFineLocationPermission())
+                return;
+
+            LocationRequest highAccuracyLocationRequest = new LocationRequest();
+            highAccuracyLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            highAccuracyLocationRequest.setInterval(10000);
+            highAccuracyLocationRequest.setFastestInterval(5000);
+            mfusedLocationProviderClient.requestLocationUpdates(highAccuracyLocationRequest, mLocationCallback, null);
+        }
+    }
+
+    protected void stopLocationUpdates(WorkflowContext workflowContext) {
+        if(null != mfusedLocationProviderClient){
+            mfusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
+        }
+    }
+
+    private void fetchCurrentLocationPostPermissionChecks() {
+        onLocationCheckLogEventReceived("Entered fetch location post validations.");
+        if (!checkAccessFineLocationPermission())
+        {
+            onLocationCheckLogEventReceived("Access fine location permissions are not available.");
+            onCurrentLocationRequestComplete(null);
+            return;
+        }
+
+        if(null == mfusedLocationProviderClient){
+            mfusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        }
+
+        mfusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (null != location) {
+                    onCurrentLocationRequestComplete(location);
+                } else {
+                    // The location may be null 1) if the location has been turned off in the device. 2) If the location was previously retreived because
+                    // disabling the location clears the cache. 3) The device never recorded the location in case of a new device. 4) Google play service
+                    // on the device has restarted and there is no active fused location provider client. To avoid these situations you can create a new
+                    // client and request location updates yourself.
+                    onLocationCheckLogEventReceived("Location object is null");
+                    onCurrentLocationRequestComplete(null);
+                }
+            }
+        });
+    }
+
+    protected String getLocationString(Location location) {
+        String provider = location.getProvider();
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        long time = location.getTime();
+
+        float accuracy = -1;
+        if(location.hasAccuracy()){
+            accuracy = location.getAccuracy();
+        }
+
+        double altitude = -1;
+        if(location.hasAltitude()){
+            altitude = location.getAltitude();
+        }
+
+        float speed = -1;
+        if(location.hasSpeed()){
+            speed = location.getSpeed();
+        }
+
+        float bearing = -1;
+        if(location.hasBearing())
+        {
+            bearing = location.getBearing();
+        }
+
+        String strDate = getCurrentDateTime();
+
+        String locationDetail = strDate + " - Provider:" + provider + ", Latitude:" + latitude + ", Longitude:" + longitude + ", Time:" + time + ", Accuracy:" + accuracy
+                + ", Altitude:" + altitude + ", Speed:" + speed + ", Bearing:" + bearing;
+
+        return locationDetail;
+    }
+
+    private String getCurrentDateTime() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return dateFormat.format(calendar.getTime());
+    }
 
     protected abstract void onLocationCheckLogEventReceived(String logEvent);
+
+    protected abstract void onCurrentLocationRequestComplete(Location location);
 
     private void askForGps(){
         LocationRequest highAccuracyLocationRequest = new LocationRequest();
@@ -108,7 +263,7 @@ public abstract class LocationActivityBase extends AppCompatActivity {
                             LocationSettingsResponse response = task.getResult(ApiException.class);
 
                             // If the GPS is available, fetch the current location.
-                            onCompleteLocationCheck(true);
+                            onLocationPermissionCheckComplete(true);
                         } catch (ApiException ex) {
                             onLocationCheckLogEventReceived("Exception received: " + ex.getMessage());
                             switch (ex.getStatusCode()){

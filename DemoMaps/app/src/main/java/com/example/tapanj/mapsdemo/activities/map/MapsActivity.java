@@ -45,6 +45,16 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
         this.placeDetectionClient = Places.getPlaceDetectionClient(this);
         this.workflowContext = new WorkflowContext(MapsActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
     }
+
+    @Override
+    protected void initializeActivityLifecycleWorkflowContext() {
+        this.activityLifecycleWorkflowContext = new WorkflowContext(MapsActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
+    }
+
+    @Override
+    protected void onLocationUpdateReceived(Location location) {
+
+    }
     //endregion
 
     //region Overridden OnMapReadyCallBack methods
@@ -93,7 +103,7 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
 //        }
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(current, this.DEFAULT_ZOOM));
-        this.checkLocationPermission(this.workflowContext);
+        this.getCurrentLocation(this.workflowContext);
         this.handleInfoWindowAdapter();
     }
 
@@ -116,11 +126,21 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
     @Override
     public void onCircleClick(Circle circle) {
         Toast.makeText(this, "Circle clicked", Toast.LENGTH_SHORT).show();
-        this.checkLocationPermission(this.workflowContext);
+        this.getCurrentLocation(this.workflowContext);
     }
 
     @Override
-    protected void onCompleteLocationCheck(boolean isConnectSuccessful) {
+    protected void onLocationCheckLogEventReceived(String logEvent) {
+
+    }
+
+    @Override
+    protected void onCurrentLocationRequestComplete(Location location) {
+        // This method will not be called as the onLocationPermissionCheckComplete method has been over-ridden.
+    }
+
+    @Override
+    protected void onLocationPermissionCheckComplete(boolean isConnectSuccessful) {
         @SuppressWarnings("MissingPermission")
         Task<PlaceLikelihoodBufferResponse> placeResult = placeDetectionClient.getCurrentPlace(null);
         placeResult.addOnCompleteListener(new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
@@ -141,9 +161,9 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
                         if(isFirstRecord){
                             isFirstRecord = false;
                             mMap.addMarker(new MarkerOptions()
-                            .title(name)
-                            .position(latLng)
-                            .snippet(marketSnippet));
+                                    .title(name)
+                                    .position(latLng)
+                                    .snippet(marketSnippet));
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
                         }
                     }
@@ -155,11 +175,6 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
                 }
             }
         });
-    }
-
-    @Override
-    protected void onLocationCheckLogEventReceived(String logEvent) {
-
     }
     //endregion
 }

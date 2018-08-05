@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 def daggerVersion = 2.16
+def lifecycleVersion = "1.1.1"
 
 repositories {
     maven {
@@ -37,6 +38,9 @@ android {
 }
 
 dependencies {
+    implementation "android.arch.lifecycle:extensions:$lifecycleVersion"
+    implementation "android.arch.lifecycle:viewmodel:$lifecycleVersion"
+
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'
