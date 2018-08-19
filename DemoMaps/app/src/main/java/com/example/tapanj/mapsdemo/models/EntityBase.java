@@ -1,6 +1,6 @@
 package com.example.tapanj.mapsdemo.models;
 
-public class Entity {
+public class EntityBase {
     //region All public variables
     public String name;
     public String description;

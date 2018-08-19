@@ -1,7 +1,12 @@
 apply plugin: 'com.android.application'
+apply plugin: "androidx.navigation.safeargs"
 
 def daggerVersion = 2.16
 def lifecycleVersion = "1.1.1"
+def roomVersion = "1.1.1"
+def pagingVersion = "1.0.0"
+def navigationVersion = "1.0.0-alpha05"
+def workManagerVersion = "1.0.0-alpha06"
 
 repositories {
     maven {
@@ -10,14 +15,15 @@ repositories {
 }
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.tapanj.mapsdemo"
         minSdkVersion 15
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -41,13 +47,28 @@ dependencies {
     implementation "android.arch.lifecycle:extensions:$lifecycleVersion"
     implementation "android.arch.lifecycle:viewmodel:$lifecycleVersion"
 
+    implementation "android.arch.persistence.room:runtime:$roomVersion"
+    implementation "android.arch.persistence.room:compiler:$roomVersion"
+    testImplementation "android.arch.persistence.room:testing:$roomVersion"
+
+    implementation "android.arch.paging:runtime:$pagingVersion"
+    testImplementation "android.arch.paging:common:$pagingVersion"
+
+    implementation "android.arch.navigation:navigation-fragment:$navigationVersion"
+    implementation "android.arch.navigation:navigation-ui:$navigationVersion"
+    androidTestImplementation "android.arch.navigation:navigation-testing:$navigationVersion"
+
+    implementation "android.arch.work:work-runtime:$workManagerVersion"
+    implementation "android.arch.work:work-firebase:$workManagerVersion"
+    androidTestImplementation "android.arch.work:work-testing:$workManagerVersion"
+
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:appcompat-v7:28.0.0-alpha1'
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-places:15.0.1'
-    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support:design:28.0.0-alpha1'
 
     // Retrofit and GSON
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
@@ -56,11 +77,15 @@ dependencies {
     // Logging
     implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
 
+    implementation 'com.android.support:multidex:1.0.3'
+
     implementation "com.google.dagger:dagger:$daggerVersion"
     implementation "com.google.dagger:dagger-android:$daggerVersion"
     implementation "com.google.dagger:dagger-android-support:$daggerVersion"
     annotationProcessor "com.google.dagger:dagger-android-processor:$daggerVersion"
     annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
+
+    annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

@@ -3,8 +3,11 @@ package com.example.tapanj.mapsdemo.models;
 public enum WorkflowSourceType {
     Button_Click,
     IntentService_WorkflowContext_Missing,
-    Activity_Create // This workflow type can be used for logging all operations post creation of activity that is not listed
-                    // in other operations as defined in this enum. These would primarily represent lifecycle events.
+    Activity_Create,
+    WorkManager_Create
+
+    // This workflow type can be used for logging all operations post creation of activity that is not listed
+    // in other operations as defined in this enum. These would primarily represent lifecycle events.
     // Need to determine if it is feasible to pass the workflow id's accross all the methods or is there a better way of sharing the workflow
     // context. Need to look at the activity lifecycle for the same. One option is to create a new context object whenever any background
     // service is called or a web service is called. Then at a common place the new workflow context would be used and the same

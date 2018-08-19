@@ -1,14 +1,35 @@
 package com.example.tapanj.mapsdemo.models;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.arch.persistence.room.Entity;
 
-public final class GroupMember extends Entity implements Parcelable {
+@Entity(tableName = "GroupMember")
+public final class GroupMember extends EntityBase implements Parcelable {
+    @PrimaryKey
+    @ColumnInfo(name = "GroupMemberId")
+    private int groupMemberId;
+
+    @ColumnInfo(name = "GroupId")
+    private int groupId;
+
+    @ColumnInfo(name = "UserId")
+    private int userId;
+
+    public GroupMember(int groupMemberId){
+        this.groupMemberId = groupMemberId;
+    }
+
+    @Ignore
     //region Constructors
     public GroupMember(String memberName) {
         this.name = memberName;
     }
 
+    @Ignore
     private GroupMember(Parcel source) {
         // Sequence of elements in the parcelable packet: 1) Group member name
         this.name = source.readString();
@@ -39,6 +60,26 @@ public final class GroupMember extends Entity implements Parcelable {
     @Override
     public String toString() {
         return this.getName();
+    }
+
+    public int getGroupMemberId(){
+        return this.groupMemberId;
+    }
+
+    public int getGroupId(){
+        return this.groupId;
+    }
+
+    public int getUserId(){
+        return this.userId;
+    }
+
+    public void setGroupId(int groupId){
+        this.groupId = groupId;
+    }
+
+    public void setUserId(int userId){
+        this.userId = userId;
     }
     //endregion
 

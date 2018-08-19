@@ -3,7 +3,7 @@ package com.example.tapanj.mapsdemo.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public final class Hangout extends Entity implements Parcelable {
+public final class Hangout extends EntityBase implements Parcelable {
     //region All private variables
     private long latitude;
     private long longitude;

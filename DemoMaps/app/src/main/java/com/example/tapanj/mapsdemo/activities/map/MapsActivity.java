@@ -1,7 +1,6 @@
 package com.example.tapanj.mapsdemo.activities.map;
 
 import android.content.Intent;
-import android.content.res.Resources;
 import android.location.Location;
 import android.os.Bundle;
 
@@ -9,16 +8,22 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Toast;
 import com.example.tapanj.mapsdemo.R;
-import com.example.tapanj.mapsdemo.activities.LocationActivityBase;
+import com.example.tapanj.mapsdemo.activities.ActivityBase;
+import com.example.tapanj.mapsdemo.dagger.MainApplication;
+import com.example.tapanj.mapsdemo.interfaces.location.ILocationCallback;
+import com.example.tapanj.mapsdemo.interfaces.location.ILocationProvider;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
 import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.places.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-public class MapsActivity extends LocationActivityBase implements OnMapReadyCallback, GoogleMap.OnCircleClickListener {
+import javax.inject.Inject;
+
+public class MapsActivity extends ActivityBase implements OnMapReadyCallback, GoogleMap.OnCircleClickListener {
 
     //region Private variables
     private GoogleMap mMap;
@@ -26,11 +31,16 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
     private GeoDataClient geoDataClient;
 
     private PlaceDetectionClient placeDetectionClient;
+
+    private final int DEFAULT_ZOOM = 15;
     //endregion
 
     public static final String CURRENTLOCATION = "com.example.tapanj.mapsdemo.CURRENTLOCATION";
 
     private WorkflowContext workflowContext;
+
+    @Inject
+    ILocationProvider locationProvider;
 
     //region Overridden activity methods
     @Override
@@ -47,14 +57,15 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
     }
 
     @Override
+    protected void injectMembers(){
+        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+    }
+
+    @Override
     protected void initializeActivityLifecycleWorkflowContext() {
         this.activityLifecycleWorkflowContext = new WorkflowContext(MapsActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
     }
 
-    @Override
-    protected void onLocationUpdateReceived(Location location) {
-
-    }
     //endregion
 
     //region Overridden OnMapReadyCallBack methods
@@ -103,7 +114,27 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
 //        }
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(current, this.DEFAULT_ZOOM));
-        this.getCurrentLocation(this.workflowContext);
+        this.locationProvider.getCurrentLocation(this.workflowContext, new ILocationCallback() {
+            @Override
+            public void onLocationCheckLogEventReceived(String message) {
+
+            }
+
+            @Override
+            public void onCurrentLocationRequestComplete(Location location) {
+
+            }
+
+            @Override
+            public void onLocationRequestFailure(String failureReason) {
+
+            }
+
+            @Override
+            public void onRequestEnableGpsSettingRequired(ResolvableApiException ex) {
+
+            }
+        });
         this.handleInfoWindowAdapter();
     }
 
@@ -126,20 +157,8 @@ public class MapsActivity extends LocationActivityBase implements OnMapReadyCall
     @Override
     public void onCircleClick(Circle circle) {
         Toast.makeText(this, "Circle clicked", Toast.LENGTH_SHORT).show();
-        this.getCurrentLocation(this.workflowContext);
     }
 
-    @Override
-    protected void onLocationCheckLogEventReceived(String logEvent) {
-
-    }
-
-    @Override
-    protected void onCurrentLocationRequestComplete(Location location) {
-        // This method will not be called as the onLocationPermissionCheckComplete method has been over-ridden.
-    }
-
-    @Override
     protected void onLocationPermissionCheckComplete(boolean isConnectSuccessful) {
         @SuppressWarnings("MissingPermission")
         Task<PlaceLikelihoodBufferResponse> placeResult = placeDetectionClient.getCurrentPlace(null);

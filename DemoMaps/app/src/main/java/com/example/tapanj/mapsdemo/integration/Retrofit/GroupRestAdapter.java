@@ -1,7 +1,10 @@
 package com.example.tapanj.mapsdemo.integration.Retrofit;
 
+import android.arch.lifecycle.LiveData;
 import com.example.tapanj.mapsdemo.interfaces.integration.IGroupAdapter;
 import com.example.tapanj.mapsdemo.models.Group;
+import com.example.tapanj.mapsdemo.models.GroupMember;
+import com.example.tapanj.mapsdemo.models.retrofit.ApiResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -9,7 +12,11 @@ import retrofit2.Response;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class GroupRetrofitAdapter implements IGroupAdapter {
+public class GroupRestAdapter implements IGroupAdapter {
+    public GroupRestAdapter(){
+
+    }
+
     @Override
     public void getGroups(Consumer<List<Group>> onSuccessCallbackHandler, Consumer<String> onFailureCallbackHandler) {
         IGroupRetrofitAdapter groupAdapter = ServiceBuilder.buildService(IGroupRetrofitAdapter.class);
@@ -29,5 +36,10 @@ public class GroupRetrofitAdapter implements IGroupAdapter {
                 String exceptionMessage = t.getMessage();
             }
         });
+    }
+
+    @Override
+    public LiveData<ApiResponse<GroupMember>> getGroupMember(int groupMemberId) {
+        return null;
     }
 }

@@ -1,44 +1,32 @@
-package com.example.tapanj.mapsdemo.activities.groupmember;
+package com.example.tapanj.mapsdemo.activities.group;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
-import android.location.Location;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import com.example.tapanj.mapsdemo.R;
-import com.example.tapanj.mapsdemo.activities.LocationActivityBase;
+import com.example.tapanj.mapsdemo.activities.ActivityBase;
+import com.example.tapanj.mapsdemo.dagger.MainApplication;
+import com.example.tapanj.mapsdemo.datastore.dao.AppDatabase;
 import com.example.tapanj.mapsdemo.models.GroupMember;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
 import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
 import com.example.tapanj.mapsdemo.viewmodel.GroupMemberViewModel;
 
-public class GroupMemberActivity extends LocationActivityBase {
+public class GroupMemberActivity extends ActivityBase {
 
-    public static final String MEMBERDETAIL = "com.example.tapanj.mapsdemo.MEMBERDETAIL";
+    public static final String GROUPMEMBERDETAIL = "com.example.tapanj.mapsdemo.GROUPMEMBERDETAIL";
     private Button btnStartEmergency;
     private Button btnStopEmergency;
     private TextView tvEmergencyStatus;
     private GroupMemberViewModel groupMemberViewModel;
-
-    @Override
-    protected void onLocationCheckLogEventReceived(String logEvent) {
-
-    }
-
-    @Override
-    protected void onCurrentLocationRequestComplete(Location location) {
-        this.tvEmergencyStatus.setText("First location received:" + location.getLatitude() +"," + location.getLongitude());
-
-        // Once the first current location request is complete, store the location information along with session details in local
-        // database. Thereafter start the periodic location updates.
-        this.startLocationUpdates(this.activityLifecycleWorkflowContext);
-    }
-
-
+    private GroupMember groupMember;
+    private AppDatabase appDatabase;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,27 +36,33 @@ public class GroupMemberActivity extends LocationActivityBase {
         this.btnStopEmergency = (Button)findViewById(R.id.btn_stopEmergency);
         this.tvEmergencyStatus = (TextView)findViewById(R.id.textView_emergencyStatus);
         this.groupMemberViewModel = ViewModelProviders.of(this).get(GroupMemberViewModel.class);
-        this.groupMemberViewModel.initialize(0);
-        this.groupMemberViewModel.getGroupMember().observe(this, new Observer<GroupMember>() {
-            @Override
-            public void onChanged(@Nullable GroupMember groupMember) {
-                // Update the UI
-            }
-        });
+        this.appDatabase = AppDatabase.getInstance(this);
+        this.readGroupMemberFromIntent();
     }
 
-    private Observer<GroupMember> onGroupMemberDataUpdated(GroupMember member) {
+    private void readGroupMemberFromIntent() {
+        Intent intent = getIntent();
+        this.groupMember = intent.getParcelableExtra(GROUPMEMBERDETAIL);
+        this.groupMemberViewModel.initialize(this.groupMember);
+        LiveData<GroupMember> groupMember = this.groupMemberViewModel.getGroupMember();
+        if(null != groupMember){
+            groupMember.observe(this, new Observer<GroupMember>() {
+                @Override
+                public void onChanged(@Nullable GroupMember groupMember) {
+                    // Update the UI
+                }
+            });
+        }
+    }
 
+    @Override
+    protected void injectMembers(){
+        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
     }
 
     @Override
     protected void initializeActivityLifecycleWorkflowContext() {
         this.activityLifecycleWorkflowContext = new WorkflowContext(GroupMemberActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
-    }
-
-    @Override
-    protected void onLocationUpdateReceived(Location location) {
-
     }
 
     public void onBtnStartEmergencyClicked(View v){

@@ -6,7 +6,7 @@ import android.os.Parcelable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Group extends Entity implements Parcelable {
+public class Group extends EntityBase implements Parcelable {
     //region All private variables
     private List<Hangout> locations;
     private List<GroupMember> members;

@@ -16,6 +16,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import com.example.tapanj.mapsdemo.activities.ActivityBase;
+import com.example.tapanj.mapsdemo.dagger.MainApplication;
 import com.example.tapanj.mapsdemo.integration.Retrofit.ServiceBuilder;
 import com.example.tapanj.mapsdemo.integration.Retrofit.IGroupRetrofitAdapter;
 import com.example.tapanj.mapsdemo.intentservice.GeofenceTransitionIntentService;
@@ -23,6 +25,8 @@ import com.example.tapanj.mapsdemo.managers.DataManager;
 import com.example.tapanj.mapsdemo.adapters.GenericRecyclerViewAdapter;
 import com.example.tapanj.mapsdemo.models.Group;
 import com.example.tapanj.mapsdemo.R;
+import com.example.tapanj.mapsdemo.models.WorkflowContext;
+import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -34,7 +38,7 @@ import retrofit2.Response;
 
 import java.util.List;
 
-public class GroupListActivity extends AppCompatActivity {
+public class GroupListActivity extends ActivityBase {
     //region All private variables
     private RecyclerView.LayoutManager groupsRecyclerViewLayoutManager;
     //endregion
@@ -104,4 +108,14 @@ public class GroupListActivity extends AppCompatActivity {
     }
 
     //endregion
+
+    @Override
+    protected void injectMembers(){
+        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+    }
+
+    @Override
+    protected void initializeActivityLifecycleWorkflowContext() {
+        this.activityLifecycleWorkflowContext = new WorkflowContext(GroupListActivity.class.getSimpleName(), WorkflowSourceType.Activity_Create);
+    }
 }

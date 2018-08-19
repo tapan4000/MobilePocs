@@ -7,7 +7,7 @@ import android.os.ResultReceiver;
 import android.support.annotation.Nullable;
 import com.example.tapanj.mapsdemo.common.Constants;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
-import com.example.tapanj.mapsdemo.dagger.CustomApplication;
+import com.example.tapanj.mapsdemo.dagger.MainApplication;
 import com.example.tapanj.mapsdemo.interfaces.ILogger;
 import com.example.tapanj.mapsdemo.models.IntentServiceResult;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
@@ -37,7 +37,7 @@ public abstract class IntentServiceBase extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        ((CustomApplication)getApplication()).getCustomApplicationComponent().inject(this);
+        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
     }
 
     @Override

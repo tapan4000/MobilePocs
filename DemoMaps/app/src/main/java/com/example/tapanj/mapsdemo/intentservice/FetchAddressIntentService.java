@@ -1,18 +1,12 @@
 package com.example.tapanj.mapsdemo.intentservice;
 
-import android.app.IntentService;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.Bundle;
-import android.os.ResultReceiver;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import com.example.tapanj.mapsdemo.R;
 import com.example.tapanj.mapsdemo.common.Constants;
-import com.example.tapanj.mapsdemo.dagger.CustomApplication;
-import com.example.tapanj.mapsdemo.interfaces.ILogger;
 import com.example.tapanj.mapsdemo.models.IntentServiceResult;
 
 import javax.inject.Inject;
