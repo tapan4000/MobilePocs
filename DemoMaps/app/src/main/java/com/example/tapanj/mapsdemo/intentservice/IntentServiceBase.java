@@ -12,6 +12,7 @@ import com.example.tapanj.mapsdemo.interfaces.ILogger;
 import com.example.tapanj.mapsdemo.models.IntentServiceResult;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
 import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
+import dagger.android.AndroidInjection;
 
 import javax.inject.Inject;
 
@@ -37,7 +38,8 @@ public abstract class IntentServiceBase extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        AndroidInjection.inject(this);
+        //((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
     }
 
     @Override
@@ -58,12 +60,14 @@ public abstract class IntentServiceBase extends IntentService {
     }
 
     private void deliverResultToReceiver(IntentServiceResult result) {
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.RESULT_DATA_KEY, result.ResultMessage);
+        if(null != result){
+            Bundle bundle = new Bundle();
+            bundle.putString(Constants.RESULT_DATA_KEY, result.ResultMessage);
 
-        // Place the workflow context object inside the bundle for the requestor to continue using the workflow context.
-        bundle.putParcelable(Constants.WORKFLOW_CONTEXT, this.workflowContext);
-        this.resultReceiver.send(result.ResultCode, bundle);
+            // Place the workflow context object inside the bundle for the requestor to continue using the workflow context.
+            bundle.putParcelable(Constants.WORKFLOW_CONTEXT, this.workflowContext);
+            this.resultReceiver.send(result.ResultCode, bundle);
+        }
     }
 
     protected abstract IntentServiceResult ProcessIntent(Intent intent);

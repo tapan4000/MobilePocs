@@ -30,8 +30,13 @@ import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+import dagger.android.AndroidInjection;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -61,6 +66,16 @@ public class GroupListActivity extends ActivityBase {
         });
 
         initializeDisplayContent();
+        FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+            @Override
+            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                if(!task.isSuccessful()){
+                    return;
+                }
+
+                String token = task.getResult().getToken();
+            }
+        });
     }
     //endregion
 
@@ -111,7 +126,8 @@ public class GroupListActivity extends ActivityBase {
 
     @Override
     protected void injectMembers(){
-        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        //((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        AndroidInjection.inject(this);
     }
 
     @Override

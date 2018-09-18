@@ -55,8 +55,24 @@
                 android:name=".activities.group.GroupMemberActivity"
                 android:label="@string/title_activity_member"
                 android:theme="@style/AppTheme.NoActionBar"></activity>
+
         <service android:name=".intentservice.FetchAddressIntentService" android:exported="false" />
         <service android:name=".intentservice.GeofenceTransitionIntentService" android:exported="true" />
+
+        <!-- Set the exported as false, so that the service cannot be started by other
+         application. Provide a description of the service as users can see the list of services
+         currently running and if they do not find a suitable description they may stop it. -->
+        <service android:name=".intentservice.FetchCurrentLocationIntentService" android:exported="false" />
+        <service android:name=".service.FetchCurrentLocationService" android:exported="false" />
+        <service android:name=".service.MainFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+
+        <!-- Make the process as remote so that the receiver keeps running on separate thread even if the application is closed. -->
+    <receiver android:name=".broadcastreceiver.FetchCurrentLocationAlarmReceiver" />
     </application>
 
 </manifest>

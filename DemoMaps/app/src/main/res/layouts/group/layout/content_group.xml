@@ -74,4 +74,30 @@
             app:layout_constraintTop_toBottomOf="@+id/chk_fetchAddress"
             app:layout_constraintStart_toStartOf="@+id/chk_fetchAddress" android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"/>
+    <Button
+            android:text="Get Location Periodically"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:onClick="onBtnGetLocationPeriodicClicked"
+            tools:layout_editor_absoluteX="16dp" android:id="@+id/btnGetLocationPeriodic" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/btn_get_current_location"/>
+    <Button
+            android:text="Get Service Status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_GetServiceStatus" app:layout_constraintStart_toEndOf="@+id/textView_hangouts"
+            android:layout_marginLeft="40dp" android:layout_marginStart="40dp"
+            android:onClick="onBtnGetServiceStatusClicked" android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/chk_showMap"/>
+    <EditText
+            android:layout_width="258dp"
+            android:layout_height="100dp"
+            android:inputType="textMultiLine"
+            android:ems="10"
+            android:id="@+id/txt_serviceStatus" android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@+id/btn_GetServiceStatus"
+            android:scrollHorizontally="false"
+            android:scrollbars="vertical" android:textSize="8sp" android:gravity="top"
+            app:layout_constraintStart_toEndOf="@+id/textView_hangouts" android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"/>
 </android.support.constraint.ConstraintLayout>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "273918312064",
+    "firebase_url": "https://api-project-273918312064.firebaseio.com",
+    "project_id": "api-project-273918312064",
+    "storage_bucket": "api-project-273918312064.appspot.com"
+  },
+  "client": [
+    {
+//      "client_info": {
+//        "mobilesdk_app_id": "1:273918312064:android:0d6f8316365e5a9c",
+//        "android_client_info": {
+//          "package_name": "com.google.android.geo.API_KEY"
+//        }
+//      },
+      "client_info": {
+        "mobilesdk_app_id": "1:273918312064:android:0d6f8316365e5a9c",
+        "android_client_info": {
+          "package_name": "com.example.tapanj.mapsdemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "273918312064-67715rk786jjkt0cefbratad3sdmf7vf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD28-LFf0M0wPl5P7FGQYg8DMW1JnGTO0Q"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

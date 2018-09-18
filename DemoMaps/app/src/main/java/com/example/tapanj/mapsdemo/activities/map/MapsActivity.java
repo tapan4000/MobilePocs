@@ -20,6 +20,7 @@ import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import dagger.android.AndroidInjection;
 
 import javax.inject.Inject;
 
@@ -58,7 +59,8 @@ public class MapsActivity extends ActivityBase implements OnMapReadyCallback, Go
 
     @Override
     protected void injectMembers(){
-        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        //((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        AndroidInjection.inject(this);
     }
 
     @Override

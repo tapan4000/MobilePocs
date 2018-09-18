@@ -1,20 +1,20 @@
 package com.example.tapanj.mapsdemo.activities.group;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.PendingIntent;
-import android.content.Intent;
-import android.content.IntentSender;
+import android.app.*;
+import android.content.*;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.ResultReceiver;
+import android.os.*;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -22,26 +22,32 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
+import androidx.work.*;
 import com.example.tapanj.mapsdemo.R;
 import com.example.tapanj.mapsdemo.activities.ActivityBase;
 import com.example.tapanj.mapsdemo.activities.map.MapsActivity;
 import com.example.tapanj.mapsdemo.adapters.GenericRecyclerViewAdapter;
+import com.example.tapanj.mapsdemo.broadcastreceiver.FetchCurrentLocationAlarmReceiver;
 import com.example.tapanj.mapsdemo.common.Constants;
 import com.example.tapanj.mapsdemo.common.Utility.LocationHelper;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
-import com.example.tapanj.mapsdemo.dagger.MainApplication;
 import com.example.tapanj.mapsdemo.intentservice.FetchAddressIntentService;
+import com.example.tapanj.mapsdemo.intentservice.FetchCurrentLocationIntentService;
 import com.example.tapanj.mapsdemo.intentservice.GeofenceTransitionIntentService;
 import com.example.tapanj.mapsdemo.interfaces.ILogger;
 import com.example.tapanj.mapsdemo.interfaces.location.ILocationCallback;
 import com.example.tapanj.mapsdemo.interfaces.location.ILocationProvider;
 import com.example.tapanj.mapsdemo.interfaces.location.IPeriodicLocationCallback;
 import com.example.tapanj.mapsdemo.models.*;
+import com.example.tapanj.mapsdemo.service.FetchCurrentLocationService;
+import com.example.tapanj.mapsdemo.workmanager.PeriodicLocationFetchWorker;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.*;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import dagger.android.AndroidInjection;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -49,6 +55,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class GroupActivity extends ActivityBase {
     // region All private variables
@@ -78,6 +85,23 @@ public class GroupActivity extends ActivityBase {
     private FusedLocationProviderClient mfusedLocationProviderClient;
     private final int REQUEST_GPS_SETTINGS = 1;
     private final int REQUEST_ACCESS_FINE_LOCATION = 2;
+
+    private FetchCurrentLocationService fetchCurrentLocationService;
+    private boolean isFetchCurrentLocationServiceBound = false;
+    private ServiceConnection fetchCurrentLocationServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            FetchCurrentLocationService.FetchCurrentLocationServiceBinder fetchCurrentLocationServiceBinder = (FetchCurrentLocationService.FetchCurrentLocationServiceBinder) iBinder;
+            fetchCurrentLocationService = fetchCurrentLocationServiceBinder.getService();
+            isFetchCurrentLocationServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            isFetchCurrentLocationServiceBound = false;
+        }
+    };
+
     //endregion
 
     // region Overridden Activity methods
@@ -215,6 +239,18 @@ public class GroupActivity extends ActivityBase {
                         }
                     }
                 });
+
+                // Enqueue a one time job to the work manager
+//                OneTimeWorkRequest currentLocationFetchWork = new OneTimeWorkRequest.Builder(PeriodicLocationFetchWorker.class).addTag(Constants.WORKER_TAG).build();
+//                WorkManager.getInstance().enqueue(currentLocationFetchWork);
+//                WorkManager.getInstance().getStatusById(currentLocationFetchWork.getId()).observe(GroupActivity.this, new android.arch.lifecycle.Observer<WorkStatus>() {
+//                    @Override
+//                    public void onChanged(@Nullable WorkStatus workStatus) {
+//                        if(workStatus != null && workStatus.getState().isFinished()){
+//                            populateMessageOnCurrentLocationTextView("Work has finished.");
+//                        }
+//                    }
+//                });
             }
         });
 
@@ -224,11 +260,32 @@ public class GroupActivity extends ActivityBase {
         locationAddressResultReceiver = new LocationAddressResultReceiver(new Handler());
         readGroupFromIntent();
         populateDisplay();
+        //ObserveWorkManager();
+    }
+
+    private void ObserveWorkManager(){
+        WorkManager.getInstance().getStatusesByTag("com.example.tapanj.mapsdemo.workmanager.PeriodicLocationFetchWorker").removeObservers(GroupActivity.this);
+        WorkManager.getInstance().getStatusesByTag("com.example.tapanj.mapsdemo.workmanager.PeriodicLocationFetchWorker").observe(GroupActivity.this, new android.arch.lifecycle.Observer<List<WorkStatus>>() {
+            @Override
+            public void onChanged(@Nullable List<WorkStatus> workStatuses) {
+                if(null != workStatuses){
+                    for (WorkStatus workStatus :
+                            workStatuses) {
+                        if (workStatus != null && workStatus.getState().isFinished()) {
+                            populateMessageOnCurrentLocationTextView(workStatus.getId() + ", Work has finished.");
+                        } else {
+                            logger.LogInformation(workStatus.getId() + ", Work State: " + workStatus.getState().name(), "");
+                        }
+                    }
+                }
+            }
+        });
     }
 
     @Override
     protected void injectMembers(){
-        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        AndroidInjection.inject(this);
+        //((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
     }
 
     @Override
@@ -240,6 +297,7 @@ public class GroupActivity extends ActivityBase {
     protected void onPause() {
         super.onPause();
         this.locationAddressResultReceiver = null;
+        this.logger.LogInformation("GroupActivity paused.", this.activityLifecycleWorkflowContext.getWorkflowId());
         //stopLocationUpdates();
     }
 
@@ -247,7 +305,25 @@ public class GroupActivity extends ActivityBase {
     protected void onResume() {
         super.onResume();
         this.locationAddressResultReceiver = new LocationAddressResultReceiver(new Handler());
+
+        // Bind to the Fetch current location service
+        Intent fetchCurrentLocationServiceIntent = new Intent(this, FetchCurrentLocationService.class);
+        bindService(fetchCurrentLocationServiceIntent, fetchCurrentLocationServiceConnection, Context.BIND_AUTO_CREATE);
+        this.logger.LogInformation("GroupActivity resumed.", this.activityLifecycleWorkflowContext.getWorkflowId());
         //startLocationUpdates();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(fetchCurrentLocationServiceConnection);
+        this.logger.LogInformation("GroupActivity stopped.", this.activityLifecycleWorkflowContext.getWorkflowId());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.logger.LogInformation("GroupActivity destroyed.", this.activityLifecycleWorkflowContext.getWorkflowId());
     }
 
     @Override
@@ -496,6 +572,106 @@ public class GroupActivity extends ActivityBase {
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling addGeofences() and removeGeofences()
         this.geofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return this.geofencePendingIntent;
+    }
+
+    public void onBtnGetLocationPeriodicClicked(View view) {
+        //setPeriodicWorkManagerRequest();
+        //setAlarmManagerRequest();
+        //setLocationFetchIntentServiceRequest();
+        setLocationFetchServiceRequest();
+    }
+
+    public void onBtnGetServiceStatusClicked(View view) {
+        EditText txtServiceStatus = (EditText) findViewById(R.id.txt_serviceStatus);
+        txtServiceStatus.setText(fetchCurrentLocationService.fetchStatus());
+    }
+
+    private void setLocationFetchIntentServiceRequest()
+    {
+        Intent intent = new Intent(this, FetchCurrentLocationIntentService.class);
+        startService(intent);
+    }
+
+    private void setLocationFetchServiceRequest()
+    {
+        Intent removeBatteryRestrictionsPermissionIntent = new Intent();
+//        String deviceManufacturer = Build.MANUFACTURER;
+//
+//        switch (deviceManufacturer.toLowerCase()){
+//            case "xiomi":
+//                removeBatteryRestrictionsPermissionIntent.setComponent(new ComponentName("com.miui.securitycenter",
+//                        "com.miui.permcenter.autostart.AutoStartManagementActivity"));
+//                break;
+//            case "oppo":
+//                removeBatteryRestrictionsPermissionIntent.setComponent(new ComponentName("com.coloros.safecenter",
+//                        "com.coloros.safecenter.permission.floatwindow.FloatWindowListActivity"));
+////                removeBatteryRestrictionsPermissionIntent.setComponent(new ComponentName("com.coloros.safecenter",
+////                        "com.coloros.safecenter.permission.startup.StartupAppListActivity"));
+//                break;
+//
+//            case "vivo":
+//                removeBatteryRestrictionsPermissionIntent.setComponent(new ComponentName("com.vivo.permissionmanager",
+//                        "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"));
+//                break;
+//        }
+//
+//        List<ResolveInfo> permissionList = this.getPackageManager().queryIntentActivities(removeBatteryRestrictionsPermissionIntent, PackageManager.MATCH_DEFAULT_ONLY);
+//        if(permissionList.size() > 0){
+//            this.startActivity(removeBatteryRestrictionsPermissionIntent);
+//        }
+
+//        removeBatteryRestrictionsPermissionIntent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+//        this.startActivity(removeBatteryRestrictionsPermissionIntent);
+
+        Intent intent = new Intent(this, FetchCurrentLocationService.class);
+        //stopService(intent);
+        startService(intent);
+    }
+
+    private void setAlarmManagerRequest(){
+        long currentTimeInMs = System.currentTimeMillis();
+        AlarmManager alarmManager = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+        Intent fetchCurrentLocationIntent = new Intent(getApplicationContext(), FetchCurrentLocationAlarmReceiver.class);
+        //boolean isRepeatingAlarmRunning = (PendingIntent.getBroadcast(getApplicationContext(), 0, fetchCurrentLocationIntent, PendingIntent.FLAG_NO_CREATE) != null);
+        PendingIntent fetchCurrentLocationPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, fetchCurrentLocationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.cancel(fetchCurrentLocationPendingIntent);
+
+//        if(!isRepeatingAlarmRunning){
+//            PendingIntent fetchCurrentLocationPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, fetchCurrentLocationIntent, PendingIntent.FLAG_NO_CREATE);
+//            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 30000, fetchCurrentLocationPendingIntent);
+//        }
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, currentTimeInMs + 3000, fetchCurrentLocationPendingIntent);
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, currentTimeInMs + 3000, fetchCurrentLocationPendingIntent);
+        }
+        else{
+            alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeInMs + 3000, fetchCurrentLocationPendingIntent);
+        }
+    }
+
+    private void setPeriodicWorkManagerRequest(){
+        PeriodicWorkRequest.Builder periodicLocationRequestBuilder = new PeriodicWorkRequest.Builder(PeriodicLocationFetchWorker.class,
+                15, TimeUnit.MINUTES).addTag(Constants.PERIODIC_LOCATION_REQUEST_TAG);
+
+        WorkManager.getInstance().cancelAllWorkByTag("com.example.tapanj.mapsdemo.workmanager.PeriodicLocationFetchWorker");
+
+        PeriodicWorkRequest periodicLocationRequest = periodicLocationRequestBuilder.build();
+        WorkManager.getInstance().enqueue(periodicLocationRequest);
+        WorkManager.getInstance().getStatusById(periodicLocationRequest.getId()).observe(GroupActivity.this, new android.arch.lifecycle.Observer<WorkStatus>() {
+            @Override
+            public void onChanged(@Nullable WorkStatus workStatus) {
+                if(workStatus != null && workStatus.getState().isFinished()){
+                    populateMessageOnCurrentLocationTextView("Work has finished.");
+                }
+                else{
+                    logger.LogInformation("Work State: " + workStatus.getState().name(), "");
+                }
+            }
+        });
     }
     //endregion
 

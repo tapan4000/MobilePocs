@@ -81,19 +81,19 @@ public class DataManager {
         group.addMember(new GroupMember("My Sample member" + childCounter));
 
         childCounter = 1;
-        group.addHangout(new Hangout("My Sample hangout" + childCounter));
+        group.addHangout(new Hangout("My hangout" + childCounter));
         childCounter++;
-        group.addHangout(new Hangout("My Sample hangout" + childCounter));
+        group.addHangout(new Hangout("My hangout" + childCounter));
         childCounter++;
-        group.addHangout(new Hangout("My Sample hangout" + childCounter));
+        group.addHangout(new Hangout("My hangout" + childCounter));
         childCounter++;
-        group.addHangout(new Hangout("My Sample hangout" + childCounter));
+        group.addHangout(new Hangout("My hangout" + childCounter));
         childCounter++;
-        group.addHangout(new Hangout("My Sample hangout" + childCounter));
+        group.addHangout(new Hangout("My hangout" + childCounter));
         childCounter++;
-        group.addHangout(new Hangout("My Sample hangout" + childCounter));
+        group.addHangout(new Hangout("My hangout" + childCounter));
         childCounter++;
-        group.addHangout(new Hangout("My Sample hangout" + childCounter));
+        group.addHangout(new Hangout("My hangout" + childCounter));
 
         return group;
     }

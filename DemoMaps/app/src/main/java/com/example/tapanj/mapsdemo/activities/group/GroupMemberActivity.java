@@ -17,6 +17,7 @@ import com.example.tapanj.mapsdemo.models.GroupMember;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
 import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
 import com.example.tapanj.mapsdemo.viewmodel.GroupMemberViewModel;
+import dagger.android.AndroidInjection;
 
 public class GroupMemberActivity extends ActivityBase {
 
@@ -57,7 +58,8 @@ public class GroupMemberActivity extends ActivityBase {
 
     @Override
     protected void injectMembers(){
-        ((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        //((MainApplication)getApplication()).getMainApplicationComponent().inject(this);
+        AndroidInjection.inject(this);
     }
 
     @Override

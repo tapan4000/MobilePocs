@@ -14,19 +14,18 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
 
 @Module
 public class NetModule {
+    @Inject @Named("backendUrl")
     String baseUrl;
 
-    public NetModule(String baseUrl){
-        this.baseUrl = baseUrl;
-    }
-
     @Provides
-    @Reusable
+    @Singleton
     Gson gson(){
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -41,7 +40,7 @@ public class NetModule {
     // TODO: A request can be cancelled using request.Cancel. Determine if we need to cancel all requests if user moves out of the pages.
     // TODO: Use a progress bar whenever we make a Web call.
     @Provides
-    @Reusable
+    @Singleton
     OkHttpClient okHttpClient(){
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
         Interceptor jsonResponseInterceptor = new Interceptor() {
@@ -60,7 +59,7 @@ public class NetModule {
     }
 
     @Provides
-    @Reusable
+    @Singleton
     Retrofit retrofit(Gson gson, OkHttpClient okHttpClient){
         return new Retrofit.Builder()
                 .baseUrl(this.baseUrl)

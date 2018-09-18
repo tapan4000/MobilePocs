@@ -138,8 +138,8 @@ public class LocationProvider implements ILocationProvider {
 
         LocationRequest highAccuracyLocationRequest = new LocationRequest();
         highAccuracyLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        highAccuracyLocationRequest.setInterval(10000);
-        highAccuracyLocationRequest.setFastestInterval(5000);
+        highAccuracyLocationRequest.setInterval(45000);
+        highAccuracyLocationRequest.setFastestInterval(30000);
         this.mfusedLocationProviderClient.requestLocationUpdates(highAccuracyLocationRequest, locationCallback, null);
         return locationCallback;
     }

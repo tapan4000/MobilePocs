@@ -4,7 +4,8 @@ public enum WorkflowSourceType {
     Button_Click,
     IntentService_WorkflowContext_Missing,
     Activity_Create,
-    WorkManager_Create
+    WorkManager_Create,
+    Service_Create
 
     // This workflow type can be used for logging all operations post creation of activity that is not listed
     // in other operations as defined in this enum. These would primarily represent lifecycle events.
