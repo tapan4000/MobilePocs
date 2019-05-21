@@ -42,29 +42,28 @@ android {
             ]
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     implementation "android.arch.lifecycle:extensions:$lifecycleVersion"
     implementation "android.arch.lifecycle:viewmodel:$lifecycleVersion"
-
     implementation "android.arch.persistence.room:runtime:$roomVersion"
     implementation "android.arch.persistence.room:compiler:$roomVersion"
     testImplementation "android.arch.persistence.room:testing:$roomVersion"
-
     implementation "android.arch.paging:runtime:$pagingVersion"
     testImplementation "android.arch.paging:common:$pagingVersion"
-
     implementation "android.arch.navigation:navigation-fragment:$navigationVersion"
     implementation "android.arch.navigation:navigation-ui:$navigationVersion"
     androidTestImplementation "android.arch.navigation:navigation-testing:$navigationVersion"
-
     implementation "android.arch.work:work-runtime:$workManagerVersion"
     implementation "android.arch.work:work-firebase:$workManagerVersion"
     androidTestImplementation "android.arch.work:work-testing:$workManagerVersion"
-
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:28.0.0-alpha1'
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
@@ -77,25 +76,24 @@ dependencies {
 
     // Logging
     implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
-
     implementation 'com.android.support:multidex:1.0.3'
 
     // Firebase SDK
     implementation 'com.google.firebase:firebase-core:16.0.1'
     implementation 'com.google.firebase:firebase-messaging:17.3.0'
-
     implementation "com.google.dagger:dagger:$daggerVersion"
     implementation "com.google.dagger:dagger-android:$daggerVersion"
     implementation "com.google.dagger:dagger-android-support:$daggerVersion"
     annotationProcessor "com.google.dagger:dagger-android-processor:$daggerVersion"
     annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
-
     annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
-
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     // Allows gradle to pick the google-service.json file for firebase support
     apply plugin: 'com.google.gms.google-services'
+
+    // The Three ten Android back port library allows the usage of java.time SDK in all versions including lower than API 26.
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.0'
 }

@@ -30,7 +30,7 @@ public class LocationHelper {
             bearing = location.getBearing();
         }
 
-        String strDate = Utility.getCurrentDateTime();
+        String strDate = Utility.getCurrentUtcDateTime().toString();
 
         String locationDetail = strDate + " - Provider:" + provider + ", Latitude:" + latitude + ", Longitude:" + longitude + ", Time:" + time + ", Accuracy:" + accuracy
                 + ", Altitude:" + altitude + ", Speed:" + speed + ", Bearing:" + bearing;

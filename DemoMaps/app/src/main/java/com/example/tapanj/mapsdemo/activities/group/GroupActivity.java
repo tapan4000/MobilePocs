@@ -2,19 +2,18 @@ package com.example.tapanj.mapsdemo.activities.group;
 
 import android.Manifest;
 import android.app.*;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.*;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.*;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -33,20 +32,30 @@ import com.example.tapanj.mapsdemo.broadcastreceiver.FetchCurrentLocationAlarmRe
 import com.example.tapanj.mapsdemo.common.Constants;
 import com.example.tapanj.mapsdemo.common.Utility.LocationHelper;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
+import com.example.tapanj.mapsdemo.datastore.sharedPreference.SharedPreferenceConstants;
 import com.example.tapanj.mapsdemo.intentservice.FetchAddressIntentService;
 import com.example.tapanj.mapsdemo.intentservice.FetchCurrentLocationIntentService;
 import com.example.tapanj.mapsdemo.intentservice.GeofenceTransitionIntentService;
-import com.example.tapanj.mapsdemo.interfaces.ILogger;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationCallback;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationProvider;
-import com.example.tapanj.mapsdemo.interfaces.location.IPeriodicLocationCallback;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogger;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationCallback;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationProvider;
+import com.example.tapanj.mapsdemo.common.location.interfaces.IPeriodicLocationCallback;
 import com.example.tapanj.mapsdemo.models.*;
+import com.example.tapanj.mapsdemo.models.backendModels.response.ServiceResponseModel;
+import com.example.tapanj.mapsdemo.models.dao.GroupMember;
+import com.example.tapanj.mapsdemo.models.retrofit.ApiResponse;
 import com.example.tapanj.mapsdemo.service.FetchCurrentLocationService;
+import com.example.tapanj.mapsdemo.viewmodel.LocationViewModel;
+import com.example.tapanj.mapsdemo.viewmodel.ViewModelFactory;
 import com.example.tapanj.mapsdemo.workmanager.PeriodicLocationFetchWorker;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.*;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import dagger.android.AndroidInjection;
 
 import javax.inject.Inject;
@@ -63,6 +72,7 @@ public class GroupActivity extends ActivityBase {
     private RecyclerView.LayoutManager membersRecyclerViewLayoutManager;
     private RecyclerView.LayoutManager hangoutsRecyclerViewLayoutManager;
     private LocationAddressResultReceiver locationAddressResultReceiver;
+    private LocationViewModel locationViewModel;
 
     private PendingIntent geofencePendingIntent;
 
@@ -76,6 +86,9 @@ public class GroupActivity extends ActivityBase {
 
     @Inject
     ILocationProvider locationProvider;
+
+    @Inject
+    ViewModelFactory viewModelFactory;
 
     //endregion
 
@@ -108,7 +121,7 @@ public class GroupActivity extends ActivityBase {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case REQUEST_ACCESS_FINE_LOCATION:
                 // If the request is cancelled, the results array is empty.
@@ -151,7 +164,39 @@ public class GroupActivity extends ActivityBase {
 
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        this.locationViewModel = ViewModelProviders.of(this, viewModelFactory).get(LocationViewModel.class);
+        this.locationViewModel.reportOneTimeLocationResponse.observe(GroupActivity.this,
+                new Observer<ApiResponse<ServiceResponseModel>>() {
+                    @Override
+                    public void onChanged(@Nullable ApiResponse<ServiceResponseModel> serviceResponseModelApiResponse) {
+                        if(serviceResponseModelApiResponse.httpStatus != 0){
+                            if(serviceResponseModelApiResponse.httpStatus == 200){
+                                // Indicate a pop-up displaying location successfully reported.
+                                displayLongMessage("Location submitted successfully.");
+                            }
+                            else if(serviceResponseModelApiResponse.httpStatus == 400) {
+                                displayLongMessage("Invalid request format for reporting the location.");
+                            }
+                            else if(serviceResponseModelApiResponse.httpStatus == 402) {
+                                displayLongMessage("Some error occurred while reporting the location. Please try again.");
+                            }
+                        }
+                    }
+                }
+        );
+
+        FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+            @Override
+            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                if(!task.isSuccessful()){
+                    return;
+                }
+
+                String token = task.getResult().getToken();
+            }
+        });
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_trigger_emergency_test);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -201,6 +246,16 @@ public class GroupActivity extends ActivityBase {
             }
         });
 
+        final Button btnGetFcmMessage = (Button) findViewById(R.id.btn_get_fcm_message);
+        btnGetFcmMessage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SharedPreferences sharedPreferences = getSharedPreferences(SharedPreferenceConstants.SharedPreferenceFileName, Context.MODE_PRIVATE);
+                String content = FetchSharedPreference(sharedPreferences, SharedPreferenceConstants.ServiceCallTestMessage);
+                populateMessageOnCurrentLocationTextView(content);
+            }
+        });
+
         final Button btnGetCurrentLocation = (Button) findViewById(R.id.btn_get_current_location);
         btnGetCurrentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -208,6 +263,8 @@ public class GroupActivity extends ActivityBase {
                 WorkflowContext getCurrentLocationButtonClickWorkflowContext =
                         new WorkflowContext(Utility.ExtractResourceName(btnGetCurrentLocation.toString()), WorkflowSourceType.Button_Click);
 
+                // TODO: As we are assigning a callback inside the activity, this may lead to memory leaks of GroupActivity every time the
+                // screen is rotated. To avoid this we can make use of the LiveData or explicitly remove callback listener on suspend.
                 // After the check location permission, the location should be fetched in the handler for location permission check complete.
                 locationProvider.getCurrentLocation(getCurrentLocationButtonClickWorkflowContext, new ILocationCallback() {
                     @Override
@@ -217,6 +274,7 @@ public class GroupActivity extends ActivityBase {
 
                     @Override
                     public void onCurrentLocationRequestComplete(Location location) {
+                        //locationViewModel.reportOneTimeLocation(Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), Double.toString(location.getAltitude()), Double.toString(location.getSpeed()));
                         postProcessFetchedCurrentLocation(location);
                     }
 
@@ -628,6 +686,11 @@ public class GroupActivity extends ActivityBase {
         startService(intent);
     }
 
+    private String FetchSharedPreference(SharedPreferences sharedPreferences, String keyName) {
+        String storedPreference = sharedPreferences.getString(keyName, null);
+        return storedPreference;
+    }
+
     private void setAlarmManagerRequest(){
         long currentTimeInMs = System.currentTimeMillis();
         AlarmManager alarmManager = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
@@ -709,5 +772,6 @@ public class GroupActivity extends ActivityBase {
             }
         }
     }
+
     //endregion
 }

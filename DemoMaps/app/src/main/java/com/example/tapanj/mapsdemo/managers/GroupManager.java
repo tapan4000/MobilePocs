@@ -1,6 +1,6 @@
 package com.example.tapanj.mapsdemo.managers;
 
-import com.example.tapanj.mapsdemo.interfaces.integration.IGroupAdapter;
+import com.example.tapanj.mapsdemo.integration.adapters.interfaces.IGroupAdapter;
 import com.example.tapanj.mapsdemo.models.Group;
 
 import javax.inject.Inject;

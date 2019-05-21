@@ -2,9 +2,8 @@ package com.example.tapanj.mapsdemo.viewmodel;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
-import com.example.tapanj.mapsdemo.interfaces.repository.IGroupMemberRepository;
-import com.example.tapanj.mapsdemo.models.GroupMember;
-import com.example.tapanj.mapsdemo.repository.GroupMemberRepository;
+import com.example.tapanj.mapsdemo.repository.interfaces.IGroupMemberRepository;
+import com.example.tapanj.mapsdemo.models.dao.GroupMember;
 
 import javax.inject.Inject;
 

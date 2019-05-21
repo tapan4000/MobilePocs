@@ -13,4 +13,15 @@
     <string name="no_address_found">No address was found</string>
     <string name="address_list_null">Address list is null</string>
     <string name="address_found">Address was found</string>
+    <string name="generic_http_400">Please validate the details provided and try again.</string>
+    <string name="generic_internal_400">Please check the details provided and try again</string>
+    <string name="generic_http_500">Some issue occurred while processing your request. Please retry after some time.</string>
+    <string name="generic_issue">Some issue occurred while processing the request. Please retry after some time.</string>
+    <string name="generic_contact_administrator">Some issue occurred while processing the request. Please contact administrator.</string>
+    <string name="internal_610">The user with specified mobile number is not registered.</string>
+    <string name="internal_611">Please check the login credentials.</string>
+    <string name="internal_602">Failed to send the OTP. Please try again.</string>
+    <string name="internal_603">Max attempt to generate OTP has been reached. Please retry after an hour.</string>
+    <string name="internal_604">Max attempt to generate OTP has been reached. Please contact administrator.</string>
+    <string name="internal_605">User activation period expired. Please contact the administrator.</string>
 </resources>

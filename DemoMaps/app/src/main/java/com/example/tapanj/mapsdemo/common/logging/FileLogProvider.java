@@ -1,7 +1,7 @@
 package com.example.tapanj.mapsdemo.common.logging;
 
 import android.content.ContextWrapper;
-import com.example.tapanj.mapsdemo.interfaces.ILogProvider;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogProvider;
 
 import java.io.File;
 import java.io.FileNotFoundException;

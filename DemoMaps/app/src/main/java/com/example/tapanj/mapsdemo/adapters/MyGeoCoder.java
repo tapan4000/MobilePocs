@@ -1,7 +1,7 @@
 package com.example.tapanj.mapsdemo.adapters;
 
 import com.example.tapanj.mapsdemo.integration.MapServiceBuilder;
-import com.example.tapanj.mapsdemo.interfaces.integration.IMapAdapter;
+import com.example.tapanj.mapsdemo.integration.adapters.interfaces.IMapAdapter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -28,7 +28,7 @@ public class MyGeoCoder {
 //
 //            retList = new ArrayList<Address>();
 //
-//            if ("OK".equalsIgnoreCase(jsonObject.getString("status"))) {
+//            if ("OK".equalsIgnoreCase(jsonObject.getString("operationState"))) {
 //                JSONArray results = jsonObject.getJSONArray("results");
 //                if (results.length() > 0) {
 //                    for (int i = 0; i < results.length() && i < maxResult; i++) {

@@ -10,6 +10,7 @@ import com.example.tapanj.mapsdemo.activities.map.MapsActivity;
 import com.example.tapanj.mapsdemo.dagger.module.*;
 import com.example.tapanj.mapsdemo.dagger.module.activity.ActivityModule;
 import com.example.tapanj.mapsdemo.dagger.module.activity.GroupActivityModule;
+import com.example.tapanj.mapsdemo.dagger.module.fragment.FragmentModule;
 import com.example.tapanj.mapsdemo.dagger.module.worker.AndroidWorkerInjectionModule;
 import com.example.tapanj.mapsdemo.dagger.module.worker.WorkerModule;
 import com.example.tapanj.mapsdemo.dagger.subcomponent.GroupActivitySubcomponent;
@@ -27,11 +28,12 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 @Singleton
-@Component(dependencies = {}, modules = {AndroidInjectionModule.class, MainApplicationModule.class, ContributeActivityModule.class,
+@Component(modules = {AndroidInjectionModule.class, MainApplicationModule.class, ContributeActivityModule.class,
         LoggerModule.class, GroupManagementModule.class, NetModule.class, LocationModule.class, DataStoreModule.class,
-        GroupActivityModule.class, ActivityModule.class, ServiceModule.class, AndroidWorkerInjectionModule.class, WorkerModule.class,
-        BroadcastReceiverModule.class})
+        GroupActivityModule.class, UserManagementModule.class, ViewModelModule.class, ActivityModule.class, FragmentModule.class,
+        ServiceModule.class, AndroidWorkerInjectionModule.class, WorkerModule.class, BroadcastReceiverModule.class})
 public interface MainApplicationComponent extends AndroidInjector<MainApplication> {
+    // Refer following link for reference: https://google.github.io/dagger/android.html
     // In the component annotation the modules are specified which are used to create the implementation of components.
     // We also reference the android injection module to ensure the binding of Android base types (Activities, fragmemts etc)
     // Inside the component we should define only the top level dependencies and keep the other dependencies under the hood.

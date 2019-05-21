@@ -3,6 +3,7 @@ package com.example.tapanj.mapsdemo.dagger.module.activity;
 import com.example.tapanj.mapsdemo.activities.group.GroupListActivity;
 import com.example.tapanj.mapsdemo.activities.group.GroupMemberActivity;
 import com.example.tapanj.mapsdemo.activities.map.MapsActivity;
+import com.example.tapanj.mapsdemo.activities.user.UserLoginRegisterActivity;
 import com.example.tapanj.mapsdemo.dagger.scope.ActivityScope;
 import com.example.tapanj.mapsdemo.intentservice.FetchAddressIntentService;
 import dagger.Module;
@@ -21,4 +22,8 @@ public abstract class ActivityModule {
     @ActivityScope
     @ContributesAndroidInjector(modules = {})
     abstract MapsActivity contributeMapsActivityInjector();
+
+    @ActivityScope
+    @ContributesAndroidInjector(modules = {})
+    abstract UserLoginRegisterActivity contributeUserLoginRegisterActivityInjector();
 }

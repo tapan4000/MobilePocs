@@ -1,8 +1,8 @@
 package com.example.tapanj.mapsdemo.common.logging;
 
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
-import com.example.tapanj.mapsdemo.interfaces.ILogProvider;
-import com.example.tapanj.mapsdemo.interfaces.ILogger;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogProvider;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogger;
 
 public class EventLogger implements ILogger {
     private ILogProvider mlogProvider;

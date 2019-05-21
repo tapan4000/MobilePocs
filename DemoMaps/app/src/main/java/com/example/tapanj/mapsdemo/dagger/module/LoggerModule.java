@@ -3,13 +3,12 @@ package com.example.tapanj.mapsdemo.dagger.module;
 import android.app.Application;
 import com.example.tapanj.mapsdemo.common.logging.EventLogger;
 import com.example.tapanj.mapsdemo.common.logging.FileLogProvider;
-import com.example.tapanj.mapsdemo.interfaces.ILogProvider;
-import com.example.tapanj.mapsdemo.interfaces.ILogger;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogProvider;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogger;
 import dagger.Module;
 import dagger.Provides;
 
 import javax.inject.Singleton;
-import java.util.UUID;
 
 @Module
 public class LoggerModule {

@@ -1,7 +1,7 @@
 package com.example.tapanj.mapsdemo.datastore.file;
 
 import android.app.Application;
-import com.example.tapanj.mapsdemo.interfaces.datastore.IFileProvider;
+import com.example.tapanj.mapsdemo.datastore.file.interfaces.IFileProvider;
 
 import java.io.File;
 import java.io.FileNotFoundException;

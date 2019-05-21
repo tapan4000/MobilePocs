@@ -6,15 +6,13 @@ import android.support.annotation.NonNull;
 import androidx.work.Worker;
 import com.example.tapanj.mapsdemo.common.Utility.LocationHelper;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
-import com.example.tapanj.mapsdemo.dagger.MainApplication;
 import com.example.tapanj.mapsdemo.dagger.module.worker.AndroidWorkerInjection;
-import com.example.tapanj.mapsdemo.interfaces.ILogProvider;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationCallback;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationProvider;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogProvider;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationCallback;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationProvider;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
 import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
 import com.google.android.gms.common.api.ResolvableApiException;
-import dagger.android.AndroidInjection;
 
 import javax.inject.Inject;
 

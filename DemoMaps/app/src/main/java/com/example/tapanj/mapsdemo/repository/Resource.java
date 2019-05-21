@@ -2,29 +2,30 @@ package com.example.tapanj.mapsdemo.repository;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import com.example.tapanj.mapsdemo.enums.Status;
+import com.example.tapanj.mapsdemo.common.AppOperationStatusCodes;
+import com.example.tapanj.mapsdemo.enums.OperationStateEnum;
 
 
-// A generic class that describes the data with a status.
+// A generic class that describes the data with a operationState.
+// This class has been taken from the Android guide to app architecture.
 public class Resource<T> {
-    @NonNull public final Status status;
+    @NonNull public final OperationStateEnum operationState;
+    @Nullable public final int serviceOperationStatus;
+    @Nullable public final int appOperationStatus;
     @Nullable public final T data;
-    @Nullable public final String message;
-    private Resource(@NonNull Status status, @Nullable T data, @Nullable String message){
-        this.status = status;
+    @Nullable public final String appUnhandledErrorMessage;
+    @Nullable public final int httpStatus;
+    private boolean hasBeenHandled = false;
+    public Resource(@NonNull OperationStateEnum operationState, @Nullable T data, @Nullable int httpStatus, @Nullable int serviceOperationStatus, @Nullable int appOperationStatus, @Nullable String appUnhandledErrorMessage){
+        this.operationState = operationState;
         this.data = data;
-        this.message = message;
+        this.httpStatus = httpStatus;
+        this.serviceOperationStatus = serviceOperationStatus;
+        this.appOperationStatus = appOperationStatus;
+        this.appUnhandledErrorMessage = appUnhandledErrorMessage;
     }
 
-    public static <T> Resource<T> success(@NonNull T data){
-        return new Resource<>(Status.SUCCESS, data, null);
-    }
-
-    public static <T> Resource<T> error(String msg, @Nullable T data){
-        return new Resource<>(Status.ERROR, data, msg);
-    }
-
-    public static <T> Resource<T> loading(@Nullable T data){
-        return new Resource<>(Status.LOADING, data, null);
+    public T getData(){
+        return this.data;
     }
 }

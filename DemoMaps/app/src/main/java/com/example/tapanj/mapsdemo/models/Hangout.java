@@ -2,6 +2,7 @@ package com.example.tapanj.mapsdemo.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.example.tapanj.mapsdemo.models.dao.EntityBase;
 
 public final class Hangout extends EntityBase implements Parcelable {
     //region All private variables

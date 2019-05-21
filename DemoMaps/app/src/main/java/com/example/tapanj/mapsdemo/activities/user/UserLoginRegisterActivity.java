@@ -1,6 +1,9 @@
 package com.example.tapanj.mapsdemo.activities.user;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,9 +13,16 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import com.example.tapanj.mapsdemo.R;
 import com.example.tapanj.mapsdemo.activities.ActivityBase;
 import com.example.tapanj.mapsdemo.activities.FragmentActivityBase;
+import com.example.tapanj.mapsdemo.datastore.sharedPreference.SharedPreferenceConstants;
+import com.example.tapanj.mapsdemo.models.user.User;
+import com.example.tapanj.mapsdemo.repository.Resource;
+import com.example.tapanj.mapsdemo.viewmodel.UserViewModel;
+import dagger.android.AndroidInjection;
 
 public class UserLoginRegisterActivity extends FragmentActivityBase {
     private static final int NUM_LOGIN_REGISTER_PAGES = 2;
@@ -32,6 +42,10 @@ public class UserLoginRegisterActivity extends FragmentActivityBase {
         this.loginRegisterViewPager = (ViewPager) findViewById(R.id.viewpager_loginRegister);
         this.loginRegisterPagerAdapter = new LoginRegisterSlidePagerAdapter(getSupportFragmentManager());
         this.loginRegisterViewPager.setAdapter(this.loginRegisterPagerAdapter);
+
+
+
+
     }
 
     @Override
@@ -46,7 +60,7 @@ public class UserLoginRegisterActivity extends FragmentActivityBase {
 
     @Override
     protected void injectMembers() {
-
+        AndroidInjection.inject(this);
     }
 
     private class LoginRegisterSlidePagerAdapter extends FragmentStatePagerAdapter

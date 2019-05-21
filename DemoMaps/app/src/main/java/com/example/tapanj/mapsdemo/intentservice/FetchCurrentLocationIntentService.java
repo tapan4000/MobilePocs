@@ -6,9 +6,8 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import com.example.tapanj.mapsdemo.common.Utility.LocationHelper;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
-import com.example.tapanj.mapsdemo.interfaces.ILogger;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationCallback;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationProvider;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationCallback;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationProvider;
 import com.example.tapanj.mapsdemo.models.IntentServiceResult;
 import com.google.android.gms.common.api.ResolvableApiException;
 

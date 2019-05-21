@@ -4,9 +4,10 @@ import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.example.tapanj.mapsdemo.datastore.dao.GroupMemberDao;
-import com.example.tapanj.mapsdemo.interfaces.integration.IGroupAdapter;
-import com.example.tapanj.mapsdemo.interfaces.repository.IGroupMemberRepository;
-import com.example.tapanj.mapsdemo.models.GroupMember;
+import com.example.tapanj.mapsdemo.integration.adapters.interfaces.IGroupAdapter;
+import com.example.tapanj.mapsdemo.repository.interfaces.IGroupMemberRepository;
+import com.example.tapanj.mapsdemo.models.dao.GroupMember;
+import com.example.tapanj.mapsdemo.models.backendModels.response.group.GroupMemberResponseModel;
 import com.example.tapanj.mapsdemo.models.retrofit.ApiResponse;
 
 import javax.inject.Inject;
@@ -29,12 +30,14 @@ public class GroupMemberRepository implements IGroupMemberRepository {
         //this.executor = executor;
     }
 
-    public LiveData<Resource<GroupMember>> getGroupMember(final int groupMemberId){
-        return new NetworkBoundResource<GroupMember, GroupMember>(){
+    public LiveData<ResourceEvent<GroupMember>> getGroupMember(final int groupMemberId){
+        return new NetworkBoundResource<GroupMember, GroupMemberResponseModel>(){
 
             @Override
-            protected void saveCallResultToDatabase(@NonNull GroupMember item) {
-                groupMemberDao.addGroupMember(item);
+            protected void saveCallResultToDataStore(@NonNull GroupMemberResponseModel item) {
+                // TODO: Integrate the group member call.
+                GroupMember groupMember = new GroupMember(2);
+                groupMemberDao.addGroupMember(groupMember);
             }
 
             @Override
@@ -44,13 +47,13 @@ public class GroupMemberRepository implements IGroupMemberRepository {
 
             @NonNull
             @Override
-            protected LiveData<GroupMember> loadFromDb() {
+            protected LiveData<GroupMember> loadFromDataStore() {
                 return groupMemberDao.getById(groupMemberId);
             }
 
             @NonNull
             @Override
-            protected LiveData<ApiResponse<GroupMember>> createApiCall() {
+            protected LiveData<ApiResponse<GroupMemberResponseModel>> createApiCall() {
                 return groupAdapter.getGroupMember(groupMemberId);
             }
         }.getAsLiveData();

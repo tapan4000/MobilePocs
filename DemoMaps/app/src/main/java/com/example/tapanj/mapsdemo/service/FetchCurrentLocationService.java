@@ -1,7 +1,6 @@
 package com.example.tapanj.mapsdemo.service;
 
 import android.app.*;
-import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.*;
@@ -12,10 +11,10 @@ import com.example.tapanj.mapsdemo.activities.group.GroupListActivity;
 import com.example.tapanj.mapsdemo.common.Constants;
 import com.example.tapanj.mapsdemo.common.Utility.LocationHelper;
 import com.example.tapanj.mapsdemo.common.Utility.Utility;
-import com.example.tapanj.mapsdemo.interfaces.ILogger;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationCallback;
-import com.example.tapanj.mapsdemo.interfaces.location.ILocationProvider;
-import com.example.tapanj.mapsdemo.interfaces.location.IPeriodicLocationCallback;
+import com.example.tapanj.mapsdemo.common.logging.interfaces.ILogger;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationCallback;
+import com.example.tapanj.mapsdemo.common.location.interfaces.ILocationProvider;
+import com.example.tapanj.mapsdemo.common.location.interfaces.IPeriodicLocationCallback;
 import com.example.tapanj.mapsdemo.models.WorkflowContext;
 import com.example.tapanj.mapsdemo.models.WorkflowSourceType;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -124,6 +123,7 @@ public class FetchCurrentLocationService extends Service {
         periodicLocationCallback = locationProvider.startLocationUpdates(this.workflowContext, new IPeriodicLocationCallback() {
             @Override
             public void onPeriodicLocationUpdateReceived(Location location) {
+                // TODO: Add logic to post values to server.
                 postCurrentStatus("Location update rec:" + counter);
                 counter++;
                 logger.LogInformation(LocationHelper.getLocationString(location), workflowContext.getWorkflowId());

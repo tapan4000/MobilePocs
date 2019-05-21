@@ -2,6 +2,8 @@ package com.example.tapanj.mapsdemo.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.example.tapanj.mapsdemo.models.dao.EntityBase;
+import com.example.tapanj.mapsdemo.models.dao.GroupMember;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.example.tapanj.mapsdemo.managers;
 
 import com.example.tapanj.mapsdemo.models.Group;
-import com.example.tapanj.mapsdemo.models.GroupMember;
+import com.example.tapanj.mapsdemo.models.dao.GroupMember;
 import com.example.tapanj.mapsdemo.models.Hangout;
 
 import java.util.ArrayList;
